@@ -1,82 +1,102 @@
-const AddBtn =document.querySelector(".Add");
-const ClearBtn =document.querySelector(".Clear");
+document.addEventListener('DOMContentLoaded', function () {
 
-const AddTaskInput=document.querySelector(".AddtaskInput")
-const SearchTaskInput=document.querySelector(".SearchtaskInput");
+    loadTasks();
 
-
-
-const tasks =document.querySelector(".tasks");
+    document.getElementById('addTaskBtn').addEventListener('click', addTask);
+});
 
 
 
-const  Addtask =()=>{
+document.addEventListener('DOMContentLoaded', function () {
+    // Load tasks from local storage
+    loadTasks();
 
-    let AddTaskInputContent =AddTaskInput.value;
+    document.getElementById('addTaskBtn').addEventListener('click', addTask);
+});
 
-                    
-    
-    if(AddTaskInputContent==""){
+function addTask() {
+    var taskInput = document.getElementById('taskInput');
+    var taskList = document.getElementById('taskList');
 
-        alert("please add a task")
+    if (taskInput.value.trim() === '') {
+        alert('Please enter a task.');
         return;
     }
-   const task= document.createElement("div")
-   task.classList.add("task","border","d-flex","justify-content-between","mb-3");
 
-   const paragraph=document.createElement("p");
-   paragraph.classList.add("TaskContent","p-2");
-   paragraph.textContent=AddTaskInputContent;
+    var li = document.createElement('li');
+    li.appendChild(document.createTextNode(taskInput.value));
 
-   task.appendChild(paragraph);
+    li.innerHTML += ' <button onclick="editTask(this)">Edit</button>';
+    li.innerHTML += ' <button onclick="deleteTask(this)">Delete</button>';
+    li.innerHTML += ' <input type="checkbox" onclick="toggleTaskStatus(this)">';
 
-   const span =document.createElement("span");
-   span.classList.add("bg-dark","p-3")
-   task.appendChild(span);
+    taskList.appendChild(li);
 
-   const a =document.createElement("a");
-   a.classList.add("text-decoration-none","text-white")
-   a.textContent="X";
-   a.href="#"
-   span.appendChild(a);
+    saveTasks();
 
-   tasks.appendChild(task);
-   AddTaskInputContent="";
-
-   a.addEventListener("click",function(){
-
-    tasks.removeChild(task);
-
-   })
-
+    taskInput.value = '';
 }
 
+function editTask(button) {
+    var li = button.parentElement;
+    var newText = prompt('Edit task:', li.firstChild.nodeValue);
 
-const searchtask=()=>{
+    if (newText !== null) {
+        li.firstChild.nodeValue = newText;
 
-   const paragraphList=document.querySelectorAll(".TaskContent");
-
-   console.log(paragraphList);
-
-   paragraphList.forEach(text => {
-
-    if(text.textContent.toLowerCase().includes(SearchTaskInput.value.toLowerCase())){
-        text.parentElement.classList.remove("d-none");
-
-    }
-    else{
-        text.parentElement.classList.add("d-none");
-
-    }
        
-   });
-
+        saveTasks();
+    }
 }
 
-AddBtn.addEventListener("click",Addtask);
+function deleteTask(button) {
+    var li = button.parentElement;
+    li.remove();
 
-ClearBtn.addEventListener("click",function(){
 
-    tasks.textContent="";
-})
-SearchTaskInput.addEventListener("input",searchtask);
+    saveTasks();
+}
+
+function toggleTaskStatus(checkbox) {
+    var li = checkbox.parentElement;
+    li.classList.toggle('completed');
+
+    
+    saveTasks();
+}
+
+function saveTasks() {
+    var taskList = document.getElementById('taskList');
+    var tasks = [];
+
+    for (var i = 0; i < taskList.children.length; i++) {
+        var task = {
+            text: taskList.children[i].firstChild.nodeValue,
+            completed: taskList.children[i].classList.contains('completed')
+        };
+        tasks.push(task);
+    }
+
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+function loadTasks() {
+    var taskList = document.getElementById('taskList');
+    var tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    for (var i = 0; i < tasks.length; i++) {
+        var li = document.createElement('li');
+        li.appendChild(document.createTextNode(tasks[i].text));
+
+        if (tasks[i].completed) {
+            li.classList.add('completed');
+        }
+
+        li.innerHTML += ' <button onclick="editTask(this)">Edit</button>';
+        li.innerHTML += ' <button onclick="deleteTask(this)">Delete</button>';
+        li.innerHTML += ' <input type="checkbox" onclick="toggleTaskStatus(this)">';
+
+        taskList.appendChild(li);
+    }
+}
+
